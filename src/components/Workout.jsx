@@ -7,6 +7,8 @@ function Workout({
     activeIndex,
     setMode,
     currentSet,
+    exerciseProgress,
+    jumpToExercise,
     inputWeight,
     setInputWeight,
     inputReps,
@@ -21,7 +23,14 @@ function Workout({
 }) {
     const currentEx = exercises[activeIndex]
     const details = getExerciseDetails(currentEx.catalogId, catalog)
-    const progressPercent = ((activeIndex) / exercises.length) * 100
+
+    const totalSetsAcrossAll = exercises.reduce((acc, ex) => acc + (ex.sets || 0), 0)
+    const completedSetsAcrossAll = exerciseProgress.reduce((acc, p) => acc + p, 0)
+    const progressPercent = (completedSetsAcrossAll / totalSetsAcrossAll) * 100
+
+    const remainingExercises = exercises
+        .map((ex, idx) => ({ ...ex, index: idx }))
+        .filter((ex, idx) => exerciseProgress[idx] < ex.sets && idx !== activeIndex)
 
     return (
         <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -32,7 +41,7 @@ function Workout({
 
             <header className="flex-between" style={{ marginBottom: '1rem' }}>
                 <button onClick={() => setMode('overview')} style={{ background: 'transparent', color: 'white' }}>✕ Exit</button>
-                <span className="badge">Ex {activeIndex + 1} / {exercises.length}</span>
+                <span className="badge">Progress: {completedSetsAcrossAll} / {totalSetsAcrossAll} Sets</span>
             </header>
 
             <div className="workout-layout">
@@ -101,6 +110,31 @@ function Workout({
                             Next Rest: {currentEx.rest || globalRest}s
                         </p>
                     </div>
+
+                    {/* Quick Switch for rest-time swaps */}
+                    {remainingExercises.length > 0 && (
+                        <div style={{ marginTop: '2rem' }}>
+                            <p className="text-dim" style={{ marginBottom: '0.5rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Swap Exercise (Cut Rest Time)</p>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                {remainingExercises.map((ex) => (
+                                    <button
+                                        key={ex.id}
+                                        onClick={() => jumpToExercise(ex.index)}
+                                        style={{
+                                            background: '#222',
+                                            border: '1px solid #444',
+                                            borderRadius: '8px',
+                                            padding: '0.5rem 0.8rem',
+                                            fontSize: '0.85rem',
+                                            color: '#ccc'
+                                        }}
+                                    >
+                                        {getExerciseDetails(ex.catalogId, catalog).name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -124,23 +158,47 @@ function Workout({
                         <button onClick={() => adjustTimer(10)} style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '0.5rem 1rem', color: 'white' }}>+10s</button>
                     </div>
 
-                    <button
-                        className="btn-primary"
-                        onClick={cancelTimer}
-                        style={{ width: 'auto', padding: '1rem 3rem', background: '#333' }}
-                    >
-                        Skip
-                    </button>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button
+                            className="btn-primary"
+                            onClick={cancelTimer}
+                            style={{ width: 'auto', padding: '1rem 3rem', background: '#333' }}
+                        >
+                            Skip
+                        </button>
+                    </div>
 
                     {timer.type === 'rest' && (
-                        <>
-                            <p className="text-dim" style={{ marginTop: '2rem' }}>Next: Set {currentSet} of {currentEx.sets}</p>
-                            {currentSet === currentEx.sets && activeIndex < exercises.length - 1 && (
-                                <p style={{ color: 'var(--color-accent)', marginTop: '1rem' }}>
-                                    UP NEXT: {getExerciseDetails(exercises[activeIndex + 1].catalogId, catalog).name}
-                                </p>
+                        <div style={{ marginTop: '2rem', textAlign: 'center', width: '100%', maxWidth: '400px', padding: '0 20px' }}>
+                            <p className="text-dim">Next: Set {currentSet} of {currentEx.sets}</p>
+
+                            {remainingExercises.length > 0 && (
+                                <div style={{ marginTop: '2rem' }}>
+                                    <p style={{ color: 'var(--color-accent)', marginBottom: '1rem' }}>Or skip rest by swapping:</p>
+                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                        {remainingExercises.map((ex) => (
+                                            <button
+                                                key={ex.id}
+                                                onClick={() => {
+                                                    jumpToExercise(ex.index)
+                                                    cancelTimer()
+                                                }}
+                                                style={{
+                                                    background: 'rgba(255,255,255,0.1)',
+                                                    border: '1px solid rgba(255,255,255,0.2)',
+                                                    borderRadius: '8px',
+                                                    padding: '0.8rem 1rem',
+                                                    color: 'white',
+                                                    fontSize: '0.9rem'
+                                                }}
+                                            >
+                                                {getExerciseDetails(ex.catalogId, catalog).name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
             )}

@@ -38,9 +38,15 @@ function App() {
 
   // Workout State
   const [activeIndex, setActiveIndex] = useState(0)
-  const [currentSet, setCurrentSet] = useState(1)
+  const [exerciseProgress, setExerciseProgress] = useState(() => {
+    // Initialize with 0 for each exercise
+    return Array(exercises.length).fill(0)
+  })
   const [sessionLogs, setSessionLogs] = useState([])
   const [globalRest, setGlobalRest] = useState(90)
+
+  // Calculated current set for UI
+  const currentSet = (exerciseProgress[activeIndex] || 0) + 1
 
   // Inputs
   const [inputWeight, setInputWeight] = useState('')
@@ -197,7 +203,7 @@ function App() {
   const startWorkout = () => {
     setMode('workout')
     setActiveIndex(0)
-    setCurrentSet(1)
+    setExerciseProgress(exercises.map(() => 0))
     setSessionLogs([])
     loadExerciseInputs(0)
   }
@@ -207,6 +213,11 @@ function App() {
     const ex = exercises[index]
     setInputWeight(ex.weight || '')
     setInputReps(parseReps(ex.reps))
+  }
+
+  const jumpToExercise = (index) => {
+    setActiveIndex(index)
+    loadExerciseInputs(index)
   }
 
   const startWorkTimer = () => {
@@ -234,16 +245,20 @@ function App() {
 
     const duration = currentEx.rest || globalRest
 
-    if (currentSet < currentEx.sets) {
-      setCurrentSet(prev => prev + 1)
+    // Update progress
+    const newProgress = [...exerciseProgress]
+    newProgress[activeIndex] += 1
+    setExerciseProgress(newProgress)
+
+    if (newProgress[activeIndex] < currentEx.sets) {
       setTimer({ endTime: Date.now() + duration * 1000, duration, type: 'rest' })
     } else {
-      if (activeIndex < exercises.length - 1) {
-        const nextIndex = activeIndex + 1
-        setActiveIndex(nextIndex)
-        setCurrentSet(1)
+      // Current exercise finished all sets. Find next one.
+      const unfinishedIndex = newProgress.findIndex((p, idx) => p < exercises[idx].sets)
+      if (unfinishedIndex !== -1) {
+        setActiveIndex(unfinishedIndex)
         setTimer({ endTime: Date.now() + duration * 1000, duration, type: 'rest' })
-        loadExerciseInputs(nextIndex)
+        loadExerciseInputs(unfinishedIndex)
       } else {
         finishWorkout()
       }
@@ -316,6 +331,8 @@ function App() {
         activeIndex={activeIndex}
         setMode={setMode}
         currentSet={currentSet}
+        exerciseProgress={exerciseProgress}
+        jumpToExercise={jumpToExercise}
         inputWeight={inputWeight}
         setInputWeight={setInputWeight}
         inputReps={inputReps}

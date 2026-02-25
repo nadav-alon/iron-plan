@@ -12,6 +12,7 @@ import plusImg from '/public/assets/exercises/plus.gif'
 import hipRaisesImg from '/public/assets/exercises/hip_raises.gif'
 import pelvicRaiseImg from '/public/assets/exercises/pelvic_raise.gif'
 import balanceImg from '/public/assets/exercises/balance.gif'
+import jumpsImg from '/public/assets/exercises/jumps.png'
 
 export const EXERCISE_CATALOG = [
   { id: 'floor_press', name: 'Dumbbell Floor Press', image: floorPressImg, defaultTimed: false },
@@ -26,6 +27,7 @@ export const EXERCISE_CATALOG = [
   { id: 'sideway_hip_raise', name: 'Sideways Hip Raises', image: hipRaisesImg, defaultTimed: false },
   { id: 'pelvic_raise', name: 'Pelvic Raise', image: pelvicRaiseImg, defaultTimed: false },
   { id: 'pita_balance', name: 'Balance', image: balanceImg, defaultTimed: true },
+  { id: 'jumps', name: 'Jumps', image: jumpsImg, defaultTimed: false },
 ]
 
 
@@ -44,7 +46,8 @@ export const PHYSIO_PLAN = [
   { id: 3, catalogId: 'plus_exercise', customName: 'Plus Exercise', sets: 10, reps: '4', rest: 60 },
   { id: 4, catalogId: 'sideway_hip_raise', customName: 'Sideway Hips Raise', sets: 3, reps: 6, rest: 60 },
   { id: 5, catalogId: 'pelvic_raise', customName: 'Pelvic Raises', sets: 3, reps: 10, rest: 60 },
-  { id: 6, catalogId: 'pita_balance', customName: 'Pita Balance (12s both legs)', sets: 3, reps: '15', rest: 60, isTimed: true }
+  { id: 6, catalogId: 'pita_balance', customName: 'Pita Balance (12s both legs)', sets: 3, reps: '15', rest: 60, isTimed: true },
+  { id: 7, catalogId: 'jumps', customName: 'Jumps (Small)', sets: 3, reps: '10', rest: 60 }
 ]
 
 export const DEFAULT_PLANS_REGISTRY = {
